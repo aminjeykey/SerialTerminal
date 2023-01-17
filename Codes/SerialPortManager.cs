@@ -1,13 +1,18 @@
 ﻿//created by Amin Jalali, St.number : 973663044 Univercity of Isfahan, 01.16.2023
 
 using System.IO.Ports;
+using SerialTerminal.Codes;
 
 namespace SerialTerminal.Codes
 {
     internal class SerialPortManager
     {
+        private System.Windows.Forms.ListBox historyList;
 
-        public SerialPortManager() {}
+        public SerialPortManager(System.Windows.Forms.ListBox historyList)
+        {
+            this.historyList = historyList; // feed listbox to fill it with received data.
+        }
 
         public string[] GetSerialPortNames()
         {
@@ -23,6 +28,7 @@ namespace SerialTerminal.Codes
             {
                 serialPort.Open();
             }
+            serialPort.DataReceived += BufferDataChanged;
             return serialPort;
         }
 
@@ -49,6 +55,15 @@ namespace SerialTerminal.Codes
                 serialPortValue = serialPort.ReadExisting();
             }
             return serialPortValue;
+        }
+
+        public void BufferDataChanged(object sender, System.EventArgs e)
+        {
+            SerialPort serialPort = (SerialPort)sender;
+            if (serialPort != null)
+            {
+                UIUtility.AddInputToHistory(historyList, SerialPortReadExisting(serialPort));
+            }
         }
     }
 }
