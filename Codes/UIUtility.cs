@@ -24,11 +24,12 @@ namespace SerialTerminal.Codes
         {
             dropDown.Items.Clear();
         }
-        //
+        // List Box
 
         public static void AddInputToHistory(ListBox historyList, string input)
         {
-            historyList.Items.Add(input);
+            historyList.Invoke((MethodInvoker)(() => historyList.Items.Add(input))); // this way we can prevent cross-thread exception thrown.
+            //historyList.Items.Add(input); this will cause cross-thread exception.
         }
 
         public static void ClearHistory(ListBox historyList)
