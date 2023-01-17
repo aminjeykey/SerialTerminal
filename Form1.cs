@@ -11,11 +11,14 @@ namespace SerialTerminal
         public mainWindow()
         {
             InitializeComponent();
+            serialPortManager = new SerialPortManager(historyList);
+            Console.WriteLine("Serial Port Manager Created.");
         }
 
         private void connectButton_Click(object sender, EventArgs e)
         {
             string portName = portComboBox.SelectedItem.ToString();
+            UIUtility.AddInputToHistory(historyList, $"connecting to port: {portName}...");
             int baudRate = int.Parse(baudrateComboBox.SelectedItem.ToString());
             System.IO.Ports.Parity parity = System.IO.Ports.Parity.None;
             switch (parityComboBox.SelectedItem.ToString())
@@ -69,24 +72,30 @@ namespace SerialTerminal
                     handshake = System.IO.Ports.Handshake.RequestToSendXOnXOff;
                     break;
             }
-            serialPortManager = new SerialPortManager();
+            //serialPortManager = new SerialPortManager(historyList);
             serialPort = serialPortManager.OpenSerialConnection(portName, baudRate, parity, dataBits, stopBits, handshake, 500);
+            UIUtility.AddInputToHistory(historyList, $"connected to port: {portName}.");
         }
 
         private void closeConBbutton_Click(object sender, EventArgs e)
         {
+            UIUtility.AddInputToHistory(historyList, $"closing connection to port: {serialPort.PortName}...");
             serialPortManager.CloseSerialConnection(serialPort);
+            UIUtility.AddInputToHistory(historyList, "connection closed.");
         }
 
         private void rescanButton_Click(object sender, EventArgs e)
         {
+            UIUtility.AddInputToHistory(historyList, "rescanning ports...");
             string[] portNames = serialPortManager.GetSerialPortNames();
             portComboBox.Items.Clear();
             UIUtility.FillDropDownValues(portComboBox, portNames);
+            UIUtility.AddInputToHistory(historyList, "scan complete.");
         }
 
         private void sendButton_Click(object sender, EventArgs e)
         {
+            UIUtility.AddInputToHistory(historyList, "sending:");
             serialPortManager.SerialPortWrite(serialPort, inputTextBox.Text);
             UIUtility.AddInputToHistory(historyList, inputTextBox.Text);
             inputTextBox.ResetText();
