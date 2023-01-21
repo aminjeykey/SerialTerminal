@@ -1,17 +1,25 @@
 ﻿//created by Amin Jalali, St.number : 973663044 Univercity of Isfahan, 01.16.2023
 
 using System.IO.Ports;
+using System;
+using System.Windows.Forms;
 using SerialTerminal.Codes;
 
 namespace SerialTerminal.Codes
 {
     internal class SerialPortManager
     {
-        private System.Windows.Forms.ListBox historyList;
+        private ListBox historyList;
+        private SerialPort serialPort;
 
         public SerialPortManager(System.Windows.Forms.ListBox historyList)
         {
             this.historyList = historyList; // feed listbox to fill it with received data.
+        }
+
+        public void FeedCurrentSerialPort(SerialPort serialPort)
+        {
+            this.serialPort = serialPort;
         }
 
         public string[] GetSerialPortNames()
@@ -34,18 +42,30 @@ namespace SerialTerminal.Codes
 
         public void CloseSerialConnection(SerialPort serialPort)
         {
-            if (serialPort.IsOpen)
+            //try
+            //{
+            if (serialPort != null)
             {
-                serialPort.Close();
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Close();
+                }
             }
+            //} catch(NullReferenceException e) { }
         }
 
         public void SerialPortWrite(SerialPort serialPort, string message)
         {
-            if (serialPort.IsOpen)
+            //try
+            //{
+            if (serialPort != null)
             {
-                serialPort.Write(message);
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Write(message);
+                }
             }
+            //} catch(NullReferenceException e) { }
         }
         public string SerialPortReadExisting(SerialPort serialPort)
         {
@@ -62,7 +82,19 @@ namespace SerialTerminal.Codes
             SerialPort serialPort = (SerialPort)sender;
             if (serialPort != null)
             {
+                UIUtility.AddInputToHistory(historyList, "Data Recieved:");
                 UIUtility.AddInputToHistory(historyList, SerialPortReadExisting(serialPort));
+            }
+        }
+
+        public void OnInputChnaged(object sender, System.EventArgs e)
+        {
+            RichTextBox input = (RichTextBox)sender;
+            SerialPortWrite(serialPort, input.Text);
+            string dataRecieved = SerialPortReadExisting(serialPort);
+            if (!dataRecieved.Equals(""))
+            {
+                UIUtility.AddInputToHistory(historyList, dataRecieved);
             }
         }
     }

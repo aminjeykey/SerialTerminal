@@ -11,8 +11,11 @@ namespace SerialTerminal
         public mainWindow()
         {
             InitializeComponent();
+
             serialPortManager = new SerialPortManager(historyList);
             Console.WriteLine("Serial Port Manager Created.");
+            UIUtility.RefreshDropDown(portComboBox);
+            Console.WriteLine("Port Combo Box Refreshed.");
         }
 
         private void connectButton_Click(object sender, EventArgs e)
@@ -72,7 +75,6 @@ namespace SerialTerminal
                     handshake = System.IO.Ports.Handshake.RequestToSendXOnXOff;
                     break;
             }
-            //serialPortManager = new SerialPortManager(historyList);
             serialPort = serialPortManager.OpenSerialConnection(portName, baudRate, parity, dataBits, stopBits, handshake, 500);
             UIUtility.AddInputToHistory(historyList, $"connected to port: {portName}.");
         }
@@ -95,9 +97,13 @@ namespace SerialTerminal
 
         private void sendButton_Click(object sender, EventArgs e)
         {
-            UIUtility.AddInputToHistory(historyList, "sending:");
-            serialPortManager.SerialPortWrite(serialPort, inputTextBox.Text);
-            UIUtility.AddInputToHistory(historyList, inputTextBox.Text);
+            string data = inputTextBox.Text;
+            if (!data.Equals("") && data != null)
+            {
+                UIUtility.AddInputToHistory(historyList, "sending:");
+                serialPortManager.SerialPortWrite(serialPort, data);
+                UIUtility.AddInputToHistory(historyList, data);
+            }
             inputTextBox.ResetText();
         }
 
@@ -108,7 +114,17 @@ namespace SerialTerminal
 
         private void streamCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-
+            serialPortManager.FeedCurrentSerialPort(serialPort);
+            if (streamCheckBox.Checked)
+            {
+                inputTextBox.TextChanged += serialPortManager.OnInputChnaged;
+                sendButton.Enabled = false;
+            }
+            else
+            {
+                inputTextBox.TextChanged -= serialPortManager.OnInputChnaged;
+                sendButton.Enabled = true;
+            }
         }
     }
 }
